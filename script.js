@@ -5,7 +5,6 @@ function showTab(id){
   document.getElementById(id).classList.add('active');
 }
 
-// === НОВЕ: карта «ефективних годин» для розрахунку продуктивності ===
 function mapEffectiveHours(h){
   if (h === 12) return 11;
   if (h === 11) return 10;
@@ -14,7 +13,7 @@ function mapEffectiveHours(h){
   if (h === 7)  return 6.5;
   if (h === 6)  return 5.5;
   if (h === 4)  return 4;
-  return h; // за замовчуванням — без зміни
+  return h;
 }
 
 const standards={cartons:150,chemistry:123,rollers:110,market:110,boxing:31};
@@ -24,7 +23,6 @@ function calculateProductivity(){
   const res=document.getElementById('prodResult');
   if(rawHours<=0){res.innerText='Помилка: години > 0';return;}
 
-  // Використовуємо ефективні години для обчислення продуктивності
   const hours=mapEffectiveHours(rawHours);
 
   const calc=(v,std)=>(v/hours)/std*100;
@@ -42,7 +40,6 @@ function calculateProductivity(){
 
   res.innerText=`Загальна продуктивність: ${total.toFixed(2)}% (ефект. год: ${hours})\n${c}`;
 
-  // === НОВЕ: авто-запис у Місячний оклад (сьогоднішня дата, введені години, округлений %) ===
   autoLogToday(rawHours, Math.round(total));
 }
 
@@ -61,7 +58,7 @@ function saveData(){
 }
 function loadData(){
   const data=JSON.parse(localStorage.getItem("workData")||"[]");
-  data.forEach(i=>addRow(i.date,i.hours,i.percent)); // виправлено порядок
+  data.forEach(i=>addRow(i.date,i.hours,i.percent));
 }
 function addRow(date='',hours='',percent=''){
   const row=tableBody.insertRow();
@@ -74,10 +71,9 @@ function addRow(date='',hours='',percent=''){
 function deleteRow(btn){btn.closest('tr').remove();saveData();}
 function clearData(){if(confirm("Очистити всі дані?")){localStorage.removeItem("workData");tableBody.innerHTML="";calculateSummaries();}}
 function getRate(p){
-  // лишаємо твою початкову шкалу, але можна переробити на не-перекривні діапазони за потреби
-  if(p>139)return 48.7;if(p>134)return 46.7;if(p>129)return 44.7;if(p>124)return 42.7;
-  if(p>119)return 40.7;if(p>114)return 38.7;if(p>109)return 36.7;if(p>104)return 34.7;
-  if(p>99)return 32.7;if(p<=100)return 30.5;return 0;
+  if(p>139)return 51.2;if(p>134)return 49.0;if(p>129)return 46.8;if(p>124)return 44.6;
+  if(p>119)return 42.4;if(p>114)return 40.2;if(p>109)return 38.0;if(p>104)return 35.8;
+  if(p>99)return 33.6;if(p<=100)return 31.4;return 0;
 }
 function calculateSummaries(){
   const data=JSON.parse(localStorage.getItem("workData")||"[]");
@@ -129,15 +125,13 @@ function exportToExcel(){
   const ws=XLSX.utils.aoa_to_sheet(wsData);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Звіт");XLSX.writeFile(wb,"повний_звіт.xlsx");
 }
 
-// === НОВЕ: апдейт/додавання рядка на сьогодні ===
 function autoLogToday(hours, percent){
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth()+1).padStart(2,'0');
   const dd = String(today.getDate()).padStart(2,'0');
-  const isoDate = `${yyyy}-${mm}-${dd}`; // формат для <input type="date">
+  const isoDate = `${yyyy}-${mm}-${dd}`;
 
-  // шукаємо рядок з сьогоднішньою датою
   const rows = Array.from(tableBody.rows);
   let found = null;
   for (const r of rows){
